@@ -1,0 +1,38 @@
+name: C Build & Test (Windows)
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      # 1. Checkout repo
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      # 2. Install GCC
+      - name: Install GCC
+        run: choco install mingw -y
+
+      # 3. Add GCC to PATH
+      - name: Add GCC to PATH
+        run: setx PATH "%PATH%;C:\tools\mingw64\bin"
+
+      # 4. Build all C files in root
+      - name: Build C project
+        run: |
+          mkdir build
+          # Collect all .c files in root folder
+          $files = Get-ChildItem -Filter *.c | ForEach-Object { $_.Name }
+          $fileList = $files -join " "
+          # Compile into executable
+          gcc -Wall -Werror -o build\my_program $fileList
+
+      # 5. Run tests
+      - name: Run tests
+        run: build\my_program --test
